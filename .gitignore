@@ -1,0 +1,93 @@
+# Compilación
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+out/
+artifacts/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.sln.ide
+
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Archivos de logs
+*.log
+logs/
+
+# Archivos temporales
+[Tt]emp/
+[Tt]mp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# Configuración local y secretos
+appsettings.Development.local.json
+appsettings.*.local.json
+secrets.json
+
+# Certificados y claves privadas
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Cobertura de pruebas
+coverage/
+TestResults/
+*.coverage
+*.coveragexml
+
+# Publicación y despliegue
+publish/
+.PublishProfiles/
+*.publishsettings
+
+# Docker
+.docker/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Archivos de configuración local de herramientas
+.env
+.env.*
+!.env.example
+
+# Node.js (si el proyecto usa frontend integrado)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Archivos generados por herramientas
+Generated/
