@@ -17,16 +17,23 @@ public class ContactController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var contactos = await _context.Contacto.ToListAsync();
+        var contactos = await _context.Contacto
+            .Where(c => c.Activo)
+            .Include(c => c.ContactosTelefonos)
+                .ThenInclude(ct => ct.Telefono)
+            .ToListAsync();
 
-        
         return Ok(contactos);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var contacto = await _context.Contacto.FindAsync(id);
+        var contacto = await _context.Contacto
+            .Where(c => c.Id == id && c.Activo)
+            .Include(c => c.ContactosTelefonos)
+                .ThenInclude(ct => ct.Telefono)
+            .FirstOrDefaultAsync();
 
         if (contacto == null ) {
             return NotFound();
@@ -43,31 +50,35 @@ public class ContactController : ControllerBase
             return BadRequest("nombre invalido");
 
         var contactos = await _context.Contacto
-        .Where(c => EF.Functions.ILike(c.Nombre, $"%{nombre}%"))
-        .ToListAsync();
+            .Where(c => c.Activo && c.Nombre.Contains(nombre))
+            .Include(c => c.ContactosTelefonos)
+                .ThenInclude(ct => ct.Telefono)
+            .ToListAsync();
 
         return Ok(contactos);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateContact(int id, [FromQuery] ContactoModel contacto)
+    public async Task<IActionResult> UpdateContact(
+        int id,
+        [FromBody] ContactoModel datos)
     {
+        var contacto = await _context.Contacto
+            .FirstOrDefaultAsync(c => c.Id == id && c.Activo);
 
-        if (id != contacto.Id)
-            return BadRequest("El id no coincide ");
+        if (contacto == null)
+            return NotFound();
 
-        var busqueda = await _context.Contacto.AnyAsync(c => c.Id == id);
+        var emailExiste = await _context.Contacto
+            .AnyAsync(c => c.Id != id && c.Email == datos.Email);
 
-        if (!busqueda)
-            return NotFound($"no existe un contacto con ese id {id}");
+        if (emailExiste)
+            return Conflict("El email ya está registrado.");
 
-        _context.Entry(contacto).State = EntityState.Modified;
+        contacto.Nombre = datos.Nombre;
+        contacto.Email = datos.Email;
 
-        try {
-            await _context.SaveChangesAsync();
-        } catch (DbUpdateConcurrencyException) {
-            return StatusCode(500, "error interno");
-        }
+        await _context.SaveChangesAsync();
 
         return NoContent();
     }
@@ -92,13 +103,22 @@ public class ContactController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddContact([FromBody] ContactoModel contacto)
     {
-        if (contacto == null ){
-            return BadRequest("contacto invalido");
-        }
+        var emailExiste = await _context.Contacto
+            .AnyAsync(c => c.Email == contacto.Email);
+
+        if (emailExiste)
+            return Conflict("El email ya está registrado.");
+
+        contacto.Id = 0;
+        contacto.FechaCreacion = DateTime.UtcNow;
+        contacto.Activo = true;
 
         _context.Contacto.Add(contacto);
         await _context.SaveChangesAsync();
 
-        return Created("", contacto);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = contacto.Id },
+            contacto);
     }
 }

@@ -11,12 +11,24 @@ var connectionString =
         + "'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(
+        Environment.GetEnvironmentVariable("DB_CONNECTION")
+        ?? throw new InvalidOperationException(
+            "Falta la variable de entorno DB_CONNECTION"
+        )
+    ));
 builder.Services.AddOpenApi();
 
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+	var db = scope.ServiceProvider
+		.GetRequiredService<AppDbContext>();
+	db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

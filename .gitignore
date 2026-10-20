@@ -91,3 +91,7 @@ pnpm-debug.log*
 
 # Archivos generados por herramientas
 Generated/
+
+.env
+.env.*
+!.env.example
